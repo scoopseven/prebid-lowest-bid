@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Test Lowest Bid Analytics</title>
+  <script src="build/dist/prebid.js"></script>
+  <script>
+    window.pbjs = window.pbjs || {};
+    pbjs.que = pbjs.que || [];
+
+    pbjs.que.push(function () {
+      // Enable your custom analytics adapter
+      pbjs.enableAnalytics([{ provider: 'lowestBid', options: {} }]);
+
+      pbjs.addAdUnits([{
+        code: 'div-gpt-ad-123',
+        mediaTypes: {
+          banner: { sizes: [[300, 250]] }
+        },
+        bids: [
+          {
+            bidder: 'pubmatic',
+            params: {
+              publisherId: '156209',
+              adSlot: 'div-gpt-ad-123@300x250'
+            }
+          },
+          {
+            bidder: 'appnexus',
+            params: {
+              placementId: 13144370
+            }
+          },
+          {
+            bidder: 'rubicon',
+            params: {
+              accountId: 1001,
+              siteId: 14062,
+              zoneId: 70608
+            }
+          }
+        ]
+      }]);
+
+      // Simulate bid responses and auction end
+      setTimeout(() => {
+        const badJordanBid = {
+          eventType: 'bidResponse',
+          args: {
+            bidder: 'Bad Jordan',
+            cpm: 0.45,
+            adUnitCode: 'div-gpt-ad-123',
+            timeToRespond: 150
+          }
+        };
+
+        const goodJordanBid = {
+          eventType: 'bidResponse',
+          args: {
+            bidder: 'Good Jordan',
+            cpm: 0.23,
+            adUnitCode: 'div-gpt-ad-123',
+            timeToRespond: 120
+          }
+        };
+
+        const auctionEnd = {
+          eventType: 'auctionEnd',
+          args: {
+            auctionId: 'jordan-is-better-than-lebron'
+          }
+        };
+
+        // Attempt to send fake events once the adapter is ready
+        const trySendEvents = () => {
+          const adapter = window.__lowestBidAnalyticsAdapter;
+          if (adapter && typeof adapter.track === 'function') {
+            adapter.track(badJordanBid);
+            adapter.track(goodJordanBid);
+            adapter.track(auctionEnd);
+          } else {
+            setTimeout(trySendEvents, 50); // retry until ready
+          }
+        };
+
+        trySendEvents();
+      }, 300); // small delay to ensure Prebid has initialized
+    });
+  </script>
+</head>
+<body>
+  <h1>Prebid Test: Lowest Bid Analytics</h1>
+  <div id="div-gpt-ad-123" style="width:300px;height:250px;background:#f0f0f0;">
+    Ad Slot
+  </div>
+</body>
+</html>
